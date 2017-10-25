@@ -43,20 +43,106 @@ public:
 
 
 
-//class Object_list
-//{
-//private:
-//    Object_list* head;
-//    Object_list* last;
-//public:
-//    Object_list* get_head() { return head;}
-//    void set_head(Object_list* new_head)  { head = new_head; }
-//
-//};
+class Object_node
+{
+private:
+    char symb;
+    Object_node* next;
+
+public:
+//    Object_node* next;
+
+    void set_next(Object_node* new_next) {
+        next = new_next;
+    }
+
+    Object_node* to_next(Object_node* link) {
+        if(link != nullptr) {
+            if(link != this) {
+                std::cout << "Указатель \"Link\" не связан с текущим объектом типа \"Object_node\"" << std::endl;
+            } else {
+                link = link->next;
+            }
+        } else {
+            std::cout << "Указатель \"Link\" пуст" << std::endl;
+        }
+        return link;
+    }
+
+    Object_node() : symb('0'), next(nullptr) {}
+
+    Object_node(char s) : symb(s), next(nullptr) {}
+
+    void show_node() {
+        std::cout << symb << std::endl;
+    }
+
+};
+
+class Object_list
+{
+    friend class Object_node;
+private:
+    static int UNIVERSE_POWER;
+    Object_node* head;
+    Object_node* last;
+    char tag;
+public:
+    Object_node* get_head() {   return head;  }
+    void set_head(Object_node* new_head) {
+        if (new_head != nullptr) {
+            head = new_head;
+        } else {
+            std::cout << "Обнуление головы! Возможна утечка памяти!" << std::endl;
+            head = nullptr;
+        }
+    }
+    Object_node* get_last() {   return last;  }
+    void set_last(Object_node* new_last) {
+        if (new_last == nullptr) {
+            if (head != nullptr) {
+                std::cout << "Ошибка! Обнуление последнего элемента непустого списка!" << std::endl;
+            } else {
+                last = nullptr;
+            }
+        }
+    }
+    void show_list() {
+        if (head != nullptr) {
+            Object_node* link = head;
+            do {
+                link->show_node();
+                link = link->to_next(link);
+            } while (link != nullptr);
+        } else {
+            std::cout << "Список пуст" << std::endl;
+        }
+        std::cout << "Вывод завершен" << std::endl;
+    }
+
+    //прописать конструкторы по тегу и тд
+    Object_list() : tag('0') {
+        head = last = new Object_node();
+    }
+
+    Object_list(char tag) {
+        //0 лишний создается всегда-исправить
+        head = nullptr;
+        for (int i = UNIVERSE_POWER - 1; i >= 0; i--) {
+            if(rand() % 2) {
+                Object_node *link = head;
+                head = new Object_node((char)(i + '0'));
+                head->set_next(link);
+            }
+        }
+    }
+};
+
 
 
 
 int Object_array :: UNIVERSE_POWER = 10;
+int Object_list :: UNIVERSE_POWER = 10;
 
 Object_array Object_array ::operator&(const Object_array & B) const {
     Object_array* set = new Object_array;
@@ -144,12 +230,16 @@ int main() {
     std::cout << "Hello, World!" << std::endl;
 
     srand(time(nullptr));
-    Object_array A('A'), B('B'), C('C'), D('D'), E;
-    clock_t start = clock();
-    for (int i = 0; i < duration; i++) {
-        E = (A & ~B) & (C | D);
-    }
-    clock_t end = clock();
-    std::cout << "Time = " << end - start << std::endl;
+    Object_list A('A');
+    A.show_list();
+
+
+//    Object_array A('A'), B('B'), C('C'), D('D'), E;
+//    clock_t start = clock();
+//    for (int i = 0; i < duration; i++) {
+//        E = (A & ~B) & (C | D);
+//    }
+//    clock_t end = clock();
+//    std::cout << "Time = " << end - start << std::endl;
     return 0;
 }
