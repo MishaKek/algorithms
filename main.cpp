@@ -21,7 +21,7 @@ public:
     Object_array operator = (const Object_array &); //оператор присваивания
     Object_array operator = (Object_array &&);  //оператор присваивания с переносом
     void display(); //вывод на экран
-//    int get_cardinality() { return cardinality; }
+    int get_cardinality() { return cardinality; }
     Object_array(); //конструктор по умолчанию
     Object_array(char); //конструктор по тегу
     Object_array(const Object_array &); //конструктор копии
@@ -35,6 +35,7 @@ public:
 struct node {
     char symb;
     node *next;
+    ~node() {   if(next) delete next;   }
 };
 
 class Object_list {
@@ -55,8 +56,106 @@ public:
     Object_list(char);  //конструктор по тегу
     Object_list(const Object_list &);  //конструктор копии
     Object_list(Object_list &&);    //конструктор копии с переносом
-//    ~Object_list(); //деструктор
 };
+
+
+
+class Object_barray {
+private:
+    //Мощность универсума
+    static int UNIVERSE_POWER;
+    //Тег
+    char tag;
+    bool *bArray;
+public:
+    Object_barray operator | (const Object_barray &) const;
+    Object_barray operator & (const Object_barray &) const;
+    Object_barray operator ~ () const;
+    Object_barray operator = (const Object_barray &);
+    Object_barray operator = (Object_barray &&);
+    void display();
+    Object_barray();
+    Object_barray(char);
+    Object_barray(const Object_barray &);
+    Object_barray(Object_barray &&);
+    ~Object_barray() {  std::cout << "OK" << std::endl;
+        delete [] bArray;    }
+};
+
+int Object_barray::UNIVERSE_POWER = 10;
+
+void Object_barray :: display() {
+    std::cout << this->tag << " =[";
+    for (int i = 0; i < UNIVERSE_POWER; i++)
+        std::cout << this->bArray[i];
+    std::cout << "]" << std::endl;
+}
+
+Object_barray::Object_barray(): tag('0'), bArray(new bool[UNIVERSE_POWER]) {
+    bArray[0] = 0;
+}
+
+Object_barray::Object_barray(char symb): tag(symb), bArray(new bool[UNIVERSE_POWER])  {
+    for (int i = 0; i < UNIVERSE_POWER; i++) {
+        bArray[i] = (rand() % 1024 >> i) & 1;
+    }
+    this->display();
+}
+
+Object_barray::Object_barray(const Object_barray & B): tag(B.tag), bArray(new bool[UNIVERSE_POWER]) {
+    memcpy(bArray, B.bArray, (size_t)UNIVERSE_POWER);
+}
+
+Object_barray::Object_barray(Object_barray &&B) : tag(B.tag), bArray(B.bArray) {
+    B.bArray = nullptr;
+}
+
+Object_barray Object_barray::operator&(const Object_barray &B) const {
+    Object_barray *result = new Object_barray(*this);
+    for (int i = 0; i < UNIVERSE_POWER; i++) {
+        if (this->bArray[i] == B.bArray[i])
+            (*result).bArray[i] = this->bArray[i];
+        else
+            (*result).bArray[i] = 0;
+    }
+    return *result;
+}
+
+Object_barray Object_barray::operator|(const Object_barray &B) const {
+    Object_barray *result = new Object_barray(*this);
+    for (int i = 0; i < UNIVERSE_POWER; i++) {
+        if (this->bArray[i] || B.bArray[i])
+            result->bArray[i] = 1;
+        else result->bArray[i] = 0;
+    }
+    return *result;
+}
+
+Object_barray Object_barray::operator~() const {
+    for (int i = 0; i < UNIVERSE_POWER; i++)
+        bArray[i] = !bArray[i];
+    return *this;
+}
+
+Object_barray Object_barray::operator=(const Object_barray &B) {
+    if (this != &B) {
+        bArray = B.bArray;
+        memcpy(bArray, B.bArray, (size_t)UNIVERSE_POWER);
+        tag = 'E';
+    }
+    return *this;
+}
+
+Object_barray Object_barray::operator = (Object_barray &&B) {
+    if (this != &B) {
+        bArray = B.bArray;
+        tag = 'R'; //result
+        B.bArray = nullptr;
+        return *this;
+    }
+}
+
+
 
 
 int Object_array :: UNIVERSE_POWER = 10;
@@ -285,7 +384,6 @@ Object_list ::Object_list(char t) : tag(t) {
             head->next = link;
         }
     }
-//    std::cout << tag << " = ";
     this->display();
 }
 
@@ -317,238 +415,56 @@ Object_list ::Object_list(Object_list &&B) : tag(B.tag), head(B.head) {
 int main() {
     std::cout << "Hello, World!" << std::endl;
     srand(time(nullptr));
-
-//    Object_list A('A'), B('B'), C('C'), D('D'), E;
-//    A.show_list();
-//    B.show_list();
-//    C.show_list();
-//    E = (A / B) & (D | C);
-//    E.show_list();
-//
-//    Object_list A('A'), B('B');
-//    A.display();
-//    B.display();
-//    Object_list C;
-//    C = (A & B) | B;
-//    C.display();
-
     clock_t start, end;
 
-    Object_list A1('A'), B1('B'), C1('C'), D1('D'), E1;
-    E1 = (A1 & ~B1) & (C1 | D1);
-    std::cout << "List ";       E1.display();
-    Object_list res1;
+
+
+    //объект-список
+//    Object_list A1('A'), B1('B'), C1('C'), D1('D'), E1;
+//    E1 = (A1 & ~B1) & (C1 | D1);
+//    std::cout << "List ";
+//    E1.display();
+//    Object_list res1;
+//    start = clock();
+//    for (int i = 0; i < duration; i++) {
+//        res1 = (A1 & ~B1) & (C1 | D1);
+//    }
+//    end = clock();
+//    std::cout << "List time = " << end - start << std::endl;
+
+
+
+    //объект-массив
+//    Object_array A2('A'), B2('B'), C2('C'), D2('D'), E2;
+//    E2 = (A2 & ~B2) & (C2 | D2);
+//    std::cout << "Array ";
+//    E2.display();
+//
+//    start = clock();
+//    Object_array res2;
+//    for (int i = 0; i < duration; i++) {
+//        res2 = (A2 & ~B2) & (C2 | D2);
+//    }
+//    end = clock();
+//    std::cout << "Array time = " << end - start << std::endl;
+
+
+
+
+    //объект массив битов
+    Object_barray A3('A'), B3('B'), C3('C'), D3('D'), E3;
+    E3 = (A3 & ~B3) & (C3 | D3);
+    std::cout << "Bool Array ";
+    E3.display();
+
     start = clock();
+    Object_barray res3;
     for (int i = 0; i < duration; i++) {
-        res1 = (A1 & ~B1) & (C1 | D1);
+        res3 = (A3 & ~B3) & (C3 | D3);
     }
     end = clock();
-    std::cout << "List time = " << end - start << std::endl;
-
-
-
-    Object_array A2('A'), B2('B'), C2('C'), D2('D'), E2;
-    E2 = (A2 & ~B2) & (C2 | D2);
-    std::cout << "Array ";     E2.display();
-
-    start = clock();
-    Object_array res2;
-    for (int i = 0; i < duration; i++) {
-        res2 = (A2 & ~B2) & (C2 | D2);
-    }
-    end = clock();
-    std::cout << "Array time = " << end - start << std::endl;
-
-
-
-
+    std::cout << "Bool Array time = " << end - start << std::endl;
 
     return 0;
 }
 
-
-
-
-
-
-//class Object_list
-//{
-//private:
-//    char symb;
-//    Object_list* next;
-//public:
-//    Object_list() {}
-//    Object_list(char s, Object_list* n = nullptr) : symb(s), next(n) {  std::cout << "+" << symb << std::endl;    }
-//    ~Object_list() {
-//        if (next) {
-//            delete next;
-//        }
-//        std::cout << "-" << symb << std::endl;
-//    }
-//
-//
-//};
-
-//
-//
-//class Object_node
-//{
-//private:
-//    char symb;
-////    Object_node* next;
-//
-//public:
-//    Object_node* next;
-//    char get_symb() {   return symb;    }
-//
-//    void set_next(Object_node* new_next) {
-//        next = new_next;
-//    }
-//
-//    Object_node* to_next(Object_node* link) {
-//        if(link != nullptr) {
-//            if(link != this) {
-//                std::cout << "Указатель \"Link\" не связан с текущим объектом типа \"Object_node\"" << std::endl;
-//            } else {
-//                link = link->next;
-//            }
-//        } else {
-//            std::cout << "Указатель \"Link\" пуст" << std::endl;
-//        }
-//        return link;
-//    }
-//
-//    Object_node() : symb('0'), next(nullptr) {}
-//
-//    Object_node(char s, Object_node* n) : symb(s), next(n) {}
-//
-//    void show_node() {
-//        std::cout << symb << std::endl;
-//    }
-//
-//};
-//
-//class Object_list
-//{
-//    friend class Object_node;
-//private:
-//    static int UNIVERSE_POWER;
-//    Object_node* head;
-//    char tag;
-//public:
-//
-//    Object_node* get_head() {   return head;  }
-//
-//    void set_head(Object_node* new_head) {
-//        if (new_head != nullptr) {
-//            head = new_head;
-//        } else {
-//            std::cout << "Обнуление головы! Возможна утечка памяти!" << std::endl;
-//            head = nullptr;
-//        }
-//    }
-//
-//    void show_list() {
-//        if (head != nullptr) {
-//            Object_node* link = head;
-//            do {
-//                link->show_node();
-//                link = link->to_next(link);
-//            } while (link != nullptr);
-//        } else {
-//            std::cout << "Список пуст" << std::endl;
-//        }
-//        std::cout << "Вывод завершен" << std::endl;
-//    }
-//
-//
-//
-//    //прописать конструкторы по тегу и тд
-//    Object_list() : tag('0') {
-//        head =  new Object_node();
-//    }
-//
-//    Object_list(char tag) {
-//        //0 лишний создается всегда-исправить
-//        head = nullptr;
-//        for (int i = UNIVERSE_POWER - 1; i >= 0; i--) {
-//            if(rand() % 2) {
-//                Object_node *link = head;
-//                head = new Object_node((char)(i + '0'), link);
-////                head->set_next(link);
-//            }
-//        }
-//    }
-//
-//    Object_list(Object_node* new_head) {
-//        if (new_head != nullptr) {
-//            head = new_head;
-//        } else {
-//            std::cout << "Указатель пуст!" << std::endl;
-//        }
-//    }
-//
-//
-//    Object_list operator & (Object_list & B) const {
-//        Object_node *E = nullptr;
-//        Object_node *tA = head, *tB;
-//        for (char x; tA != nullptr; tA = tA->to_next(tA)) {
-//            x = tA->get_symb();
-//            tB = B.get_head();
-//            for (char y; tB != nullptr; tB = tB->to_next(tB)) {
-//                y = tB->get_symb();
-//                if (x == y)
-//                    E = new Object_node(x, E);
-//            }
-//        }
-//        return Object_list(E);
-//    }
-//
-//    Object_list operator | (Object_list & B) const {
-//        Object_node *E = B.get_head();
-//        Object_node *tA = head, *tB;
-//        for (char x; tA != nullptr; tA = tA->to_next(tA)) {
-//            x = tA->get_symb();
-//            tB = E;
-//            bool f = true;
-//            for (char y; tB != nullptr; tB = tB->to_next(tB)) {
-//                y = tB->get_symb();
-//                if (x == y)
-//                    f = false;
-//            }
-//            if (f) {
-//                E = new Object_node(x, E);
-//            }
-//        }
-//        return Object_list(E);
-//    }
-//
-//    Object_list operator / (Object_list &B) const {
-//        Object_node *E = nullptr;
-//        Object_node *tA = head, *tB;
-//        for (char x; tA != nullptr; tA = tA->to_next(tA)) {
-//            x = tA->get_symb();
-//            tB = B.get_head();
-//            bool f = true;
-//            for (char y; tB != nullptr; tB = tB->to_next(tB)) {
-//                y = tB->get_symb();
-//                if (x == y)
-//                    f = false;
-//            }
-//            if (f)
-//                E = new Object_node(x, E);
-//        }
-//        return Object_list(E);
-//    }
-//
-//    Object_list operator = (Object_list &&B) {
-//        if (this != &B) {
-//            head = B.get_head();
-//            B.head = nullptr;
-//        }
-//    }
-//
-//};
-//
-//
-//
